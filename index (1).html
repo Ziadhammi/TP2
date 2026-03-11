@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GPA Calculator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #2c3e50;
+      font-size: 1.8rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #fafafa;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #4CAF50;
+      background: #fff;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #calcBtn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    #calcBtn:hover { background-color: #43a047; }
+
+    #resetBtn {
+      background-color: #e0e0e0;
+      color: #333;
+    }
+    #resetBtn:hover { background-color: #bdbdbd; }
+
+    #result {
+      margin-top: 24px;
+      padding: 18px 20px;
+      border-radius: 8px;
+      background: #f0faf0;
+      border-left: 5px solid #4CAF50;
+      display: none;
+    }
+
+    #result h2 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+
+    #result p {
+      margin: 6px 0;
+      color: #444;
+      font-size: 1rem;
+    }
+
+    #result .badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: white;
+    }
+
+    .badge-distinction { background: #388e3c; }
+    .badge-merit       { background: #1976d2; }
+    .badge-pass        { background: #f57c00; }
+    .badge-fail        { background: #d32f2f; }
+
+    .error {
+      color: #c62828;
+      font-size: 0.88rem;
+      margin-top: -12px;
+      margin-bottom: 14px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GPA Calculator</h1>
+
+    <label for="course">Course Name</label>
+    <input type="text" id="course" placeholder="e.g. Mathematics 101" />
+    <span class="error" id="courseError">Please enter a course name.</span>
+
+    <label for="credits">Credit Hours</label>
+    <input type="number" id="credits" placeholder="e.g. 3" min="1" max="6" />
+    <span class="error" id="creditsError">Please enter valid credit hours (1-6).</span>
+
+    <label for="grade">Grade</label>
+    <select id="grade">
+      <option value="">-- Select Grade --</option>
+      <option value="A">A (4.0)</option>
+      <option value="B">B (3.0)</option>
+      <option value="C">C (2.0)</option>
+      <option value="D">D (1.0)</option>
+      <option value="F">F (0.0)</option>
+    </select>
+    <span class="error" id="gradeError">Please select a grade.</span>
+
+    <div class="btn-row">
+      <button id="calcBtn" onclick="calculate()">Calculate</button>
+      <button id="resetBtn" onclick="resetForm()">Reset</button>
+    </div>
+
+    <div id="result">
+      <h2 id="resTitle"></h2>
+      <p id="resGPA"></p>
+      <p id="resCredits"></p>
+      <span id="resBadge" class="badge"></span>
+    </div>
+  </div>
+
+  <script>
+    const gradePoints = { A: 4.0, B: 3.0, C: 2.0, D: 1.0, F: 0.0 };
+
+    function calculate() {
+      // Clear previous errors
+      document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+      document.getElementById('result').style.display = 'none';
+
+      const course   = document.getElementById('course').value.trim();
+      const credits  = parseInt(document.getElementById('credits').value);
+      const grade    = document.getElementById('grade').value;
+
+      let valid = true;
+
+      if (!course) {
+        document.getElementById('courseError').style.display = 'block';
+        valid = false;
+      }
+      if (!credits || credits < 1 || credits > 6) {
+        document.getElementById('creditsError').style.display = 'block';
+        valid = false;
+      }
+      if (!grade) {
+        document.getElementById('gradeError').style.display = 'block';
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      const gpa = gradePoints[grade];
+      const totalPoints = gpa * credits;
+
+      let interpretation = '';
+      let badgeClass = '';
+      if (gpa >= 3.7)      { interpretation = 'Distinction'; badgeClass = 'badge-distinction'; }
+      else if (gpa >= 3.0) { interpretation = 'Merit';       badgeClass = 'badge-merit'; }
+      else if (gpa >= 2.0) { interpretation = 'Pass';        badgeClass = 'badge-pass'; }
+      else                 { interpretation = 'Fail';        badgeClass = 'badge-fail'; }
+
+      document.getElementById('resTitle').textContent   = 'Results for ' + course;
+      document.getElementById('resGPA').textContent     = 'Grade Point Average: ' + gpa.toFixed(2);
+      document.getElementById('resCredits').textContent = 'Total Quality Points: ' + totalPoints.toFixed(1) + ' (' + credits + ' credit hrs)';
+
+      const badge = document.getElementById('resBadge');
+      badge.textContent  = interpretation;
+      badge.className    = 'badge ' + badgeClass;
+
+      document.getElementById('result').style.display = 'block';
+    }
+
+    function resetForm() {
+      document.getElementById('course').value  = '';
+      document.getElementById('credits').value = '';
+      document.getElementById('grade').value   = '';
+      document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+      document.getElementById('result').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
